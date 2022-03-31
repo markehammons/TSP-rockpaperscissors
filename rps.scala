@@ -34,15 +34,14 @@ def round(playerSelection: String, computerSelection: String) =
     case _ => (s"You lose! $computerSelection beats $playerSelection", loss)
 
 def showResults(record: Record) = 
-  record match 
-    case (wins, losses, ties) => 
-      if wins > losses then 
-        println("You won!!")
-      else if losses > wins then 
-        println("You lost!!")
-      else 
-        println("You tied!!")
-      println(s"Scoreboard: $wins wins, $losses losses, $ties ties")
+  val (wins, losses, ties) = record
+  if wins > losses then 
+    println("You won!!")
+  else if losses > wins then 
+    println("You lost!!")
+  else 
+    println("You tied!!")
+  println(s"Scoreboard: $wins wins, $losses losses, $ties ties")
 
 def game() =
   val scoreRecord =
