@@ -1,62 +1,59 @@
 import scala.util.Random
 import org.scalajs.dom.window.prompt
-import scala.util.chaining.*
 
-enum RPS:
-  case Rock
-  case Paper
-  case Scissors
+val rock = "rock"
+val paper = "paper"
+val scissors = "scissors"
+val invalid = "invalid"
 
-object RPS:
-  def fromString(string: String) = string.toLowerCase match
-    case "rock"     => Some(Rock)
-    case "paper"    => Some(Paper)
-    case "scissors" => Some(Scissors)
-    case _          => None
+def userPlay() = 
+  val selection = prompt("Please choose rock, paper, or scissors.", rock)
+  selection match 
+    case `rock` | `paper` | `scissors` => selection
+    case _ => invalid
 
-case class ScoreRecord(wins: Int, losses: Int, ties: Int):
-  def +(o: ScoreRecord) =
-    ScoreRecord(wins + o.wins, losses + o.losses, ties + o.ties)
-  override def toString = s"""|==== Score Board ====
-                               | wins: $wins
-                               | losses: $losses
-                               | ties: $ties""".stripMargin
+val choices = List(rock,paper,scissors)
+def computerPlay() = choices(Random.nextInt(3))
 
-object ScoreRecord:
-  val win = ScoreRecord(1, 0, 0)
-  val loss = ScoreRecord(0, 1, 0)
-  val tie = ScoreRecord(0, 0, 1)
+val win = (1,0,0)
+val loss = (0,1,0)
+val tie = (0,0,1)
 
-def getRPS(roundNum: Int): RPS =
-  prompt(s"""Round $roundNum: Choose between "Rock", "Paper", and "Scissors"""")
-    .pipe(RPS.fromString)
-    .getOrElse {
-      println("Invalid input, please try again")
-      getRPS(roundNum)
-    }
+type Record = (Int, Int, Int)
 
-def computerPlay() = RPS.fromOrdinal(Random.nextInt(3))
+def combineRecords(a: (Int, Int, Int), b: (Int, Int, Int)) = 
+  (a._1 + b._1, a._2 + b._2, a._3 + b._3)
 
-def round(playerSelection: RPS, computerSelection: RPS) =
+def round(playerSelection: String, computerSelection: String) =
   (playerSelection, computerSelection) match
-    case (RPS.Paper, RPS.Rock) | (RPS.Rock, RPS.Scissors) |
-        (RPS.Scissors, RPS.Paper) =>
-      (s"You Win! $playerSelection beats $computerSelection", ScoreRecord.win)
-    case (RPS.Paper, RPS.Scissors) | (RPS.Rock, RPS.Paper) |
-        (RPS.Scissors, RPS.Rock) =>
-      (s"You Lose! $computerSelection beats $playerSelection", ScoreRecord.loss)
-    case _ => (s"You Tied!", ScoreRecord.tie)
+    case (`paper`, `rock`) | (`rock`, `scissors`) |
+        (`scissors`, `paper`) =>
+      (s"You Win! $playerSelection beats $computerSelection", win)
+    case (`computerSelection`, _) =>
+      (s"You Tied! You both chose $playerSelection", tie)
+    case _ => (s"You lose! $computerSelection beats $playerSelection", loss)
+
+def showResults(record: Record) = 
+  record match 
+    case (wins, losses, ties) => 
+      if wins > losses then 
+        println("You won!!")
+      else if losses > wins then 
+        println("You lost!!")
+      else 
+        println("You tied!!")
+      println(s"Scoreboard: $wins wins, $losses losses, $ties ties")
 
 def game() =
   val scoreRecord =
     for roundNum <- 1 to 5
     yield
-      val playerChoice = getRPS(roundNum)
+      val playerChoice = userPlay()
       val computerChoice = computerPlay()
       val (result, record) = round(playerChoice, computerChoice)
       println(s"Round $roundNum: $result")
       record
 
-  println(scoreRecord.reduce(_ + _).toString)
+  showResults(scoreRecord.reduce(combineRecords))
 
 @main def main = game()
