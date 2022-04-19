@@ -6,53 +6,42 @@ val paper = "paper"
 val scissors = "scissors"
 val invalid = "invalid"
 
-def userPlay() = 
-  val selection = prompt("Please choose rock, paper, or scissors.", rock)
-  selection match 
-    case `rock` | `paper` | `scissors` => selection
-    case _ => invalid
+def userPlay() =
+  prompt("Please choose rock, paper, or scissors.", rock).toLowerCase
 
-val choices = List(rock,paper,scissors)
-def computerPlay() = choices(Random.nextInt(3))
-
-val win = (1,0,0)
-val loss = (0,1,0)
-val tie = (0,0,1)
-
-type Record = (Int, Int, Int)
-
-def combineRecords(a: (Int, Int, Int), b: (Int, Int, Int)) = 
-  (a._1 + b._1, a._2 + b._2, a._3 + b._3)
+val choices = List(rock, paper, scissors)
+def computerPlay() = Random.shuffle(choices).head
 
 def round(playerSelection: String, computerSelection: String) =
-  (playerSelection, computerSelection) match
-    case (`paper`, `rock`) | (`rock`, `scissors`) |
-        (`scissors`, `paper`) =>
-      (s"You Win! $playerSelection beats $computerSelection", win)
-    case (`computerSelection`, _) =>
-      (s"You Tied! You both chose $playerSelection", tie)
-    case _ => (s"You lose! $computerSelection beats $playerSelection", loss)
+  if (playerSelection == paper && computerSelection == rock) ||
+    (playerSelection == rock && computerSelection == scissors) ||
+    (playerSelection == scissors && computerSelection == paper)
+  then s"You Win! $playerSelection beats $computerSelection"
+  else if playerSelection == computerSelection then
+    s"You Tied! You both chose $playerSelection"
+  else s"You Lose! $computerSelection beats $playerSelection"
 
-def showResults(record: Record) = 
-  val (wins, losses, ties) = record
-  if wins > losses then 
-    println("You won!!")
-  else if losses > wins then 
-    println("You lost!!")
-  else 
-    println("You tied!!")
-  println(s"Scoreboard: $wins wins, $losses losses, $ties ties")
+def showResults(record: List[String]) =
+  val wins = record.count(string => string.startsWith("You Win!"))
+  val losses = record.count(string => string.startsWith("You Lose!"))
+  val ties = record.count(string => string.startsWith("You Tied!"))
+  if wins > losses then println("You won!!")
+  else if losses > wins then println("You lost!!")
+  else println("You tied!!")
+  println(
+    s"Scoreboard: $wins wins, $losses losses, $ties ties"
+  )
 
 def game() =
   val scoreRecord =
-    for roundNum <- 1 to 5
+    for roundNum <- List.range(1, 6)
     yield
       val playerChoice = userPlay()
       val computerChoice = computerPlay()
-      val (result, record) = round(playerChoice, computerChoice)
+      val result = round(playerChoice, computerChoice)
       println(s"Round $roundNum: $result")
-      record
+      result
 
-  showResults(scoreRecord.reduce(combineRecords))
+  showResults(scoreRecord)
 
 @main def main = game()
